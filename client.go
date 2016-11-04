@@ -97,7 +97,17 @@ func newClient(iface *net.Interface) (*client, error) {
 
 	// Join multicast groups to receive announcements from server
 	p1 := ipv4.NewPacketConn(ipv4conn)
+	err = p1.SetMulticastInterface(iface)
+	if err != nil {
+		return nil, err
+	}
+
 	p2 := ipv6.NewPacketConn(ipv6conn)
+	err = p2.SetMulticastInterface(iface)
+	if err != nil {
+		return nil, err
+	}
+
 	if iface != nil {
 		if err := p1.JoinGroup(iface, &net.UDPAddr{IP: mdnsGroupIPv4}); err != nil {
 			return nil, err
