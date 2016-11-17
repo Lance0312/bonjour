@@ -157,20 +157,6 @@ func (c *client) mainloop(params *LookupParams) {
 			sections = append(sections, msg.Extra...)
 			for _, answer := range sections {
 				switch rr := answer.(type) {
-				case *dns.PTR:
-					if params.ServiceName() != rr.Hdr.Name {
-						continue
-					}
-					if params.ServiceInstanceName() != "" && params.ServiceInstanceName() != rr.Ptr {
-						continue
-					}
-					if _, ok := entries[rr.Ptr]; !ok {
-						entries[rr.Ptr] = NewServiceEntry(
-							trimDot(strings.Replace(rr.Ptr, rr.Hdr.Name, "", -1)),
-							params.Service,
-							params.Domain)
-					}
-					entries[rr.Ptr].TTL = rr.Hdr.Ttl
 				case *dns.SRV:
 					if params.ServiceInstanceName() != "" && params.ServiceInstanceName() != rr.Hdr.Name {
 						continue
@@ -186,6 +172,24 @@ func (c *client) mainloop(params *LookupParams) {
 					entries[rr.Hdr.Name].HostName = rr.Target
 					entries[rr.Hdr.Name].Port = int(rr.Port)
 					entries[rr.Hdr.Name].TTL = rr.Hdr.Ttl
+				}
+			}
+			for _, answer := range sections {
+				switch rr := answer.(type) {
+				case *dns.PTR:
+					if params.ServiceName() != rr.Hdr.Name {
+						continue
+					}
+					if params.ServiceInstanceName() != "" && params.ServiceInstanceName() != rr.Ptr {
+						continue
+					}
+					if _, ok := entries[rr.Ptr]; !ok {
+						entries[rr.Ptr] = NewServiceEntry(
+							trimDot(strings.Replace(rr.Ptr, rr.Hdr.Name, "", -1)),
+							params.Service,
+							params.Domain)
+					}
+					entries[rr.Ptr].TTL = rr.Hdr.Ttl
 				case *dns.TXT:
 					if params.ServiceInstanceName() != "" && params.ServiceInstanceName() != rr.Hdr.Name {
 						continue
