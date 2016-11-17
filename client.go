@@ -46,6 +46,21 @@ func (r *Resolver) Browse(service, domain string, entries chan<- *ServiceEntry) 
 	return nil
 }
 
+func (r *Resolver) Query(service, domain string) error {
+	params := defaultParams(service)
+	if domain != "" {
+		params.Domain = domain
+	}
+
+	err := r.c.query(params)
+	if err != nil {
+		r.Exit <- true
+		return err
+	}
+
+	return nil
+}
+
 // Look up a specific service by its name and type in a given domain
 func (r *Resolver) Lookup(instance, service, domain string, entries chan<- *ServiceEntry) error {
 	params := defaultParams(service)
